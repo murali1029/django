@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js">
+  </script>
+
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+  <title>Todo</title>
+</head>
+
+<body style="background-color: #f3f3f3">
+  {% if request.user.is_authenticated %}
+  <p>Welcome, {{ user.get_username }} to your To-Do List</p>
+  <button><a href="{% url 'logout' %}"> Log Out </a></button>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" >To-Do List</a>
+      <form class="d-flex" method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input class="form-control me-2" type="search" placeholder="Add To-Do list here.." name = "list" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Add</button>
+      </form>
+    </div>
+  </nav>
+  <div class="container" >
+    {% for item in all_item %}
+    <div class="item" {% if forloop.last %} id = "list_last" {% endif %}>
+      <div>
+        <p {% if item.completed %} style="text-decoration: line-through; font-weight: lighter;" {% endif %} >{{item.item}}</p>
+      </div>
+      <div>
+        <button class="complete_btn" id={{item.id}} {% if item.completed %} hidden{% endif %}>Done</a></button>
+        <button class="delete_btn" type="submit" id={{item.id}} type="delete">  Delete </button>
+      </div>
+    </div>
+    {% endfor %}
+    <script type="text/javascript">
+      $(document).ready(function () {
+        $(".delete_btn").click(function (e) {
+          e.preventDefault();
+          let id = $(this).attr("id");
+          $.ajaxSetup({
+            headers: { "X-CSRFToken": '{{csrf_token}}', }
+          });
+
+          $.ajax({
+            url: '/?id='+id,
+            type: 'delete',
+            dataType: 'json',
+            data: {
+              id: id,
+            },           
+            success: function (data) {
+              console.log(data);
+              alert('Delete successfully')
+              location.reload();
+            },
+            error: function (errormessage) {
+              console.log(errormessage);
+              alert('not working')           
+            }
+          })
+        })
+
+
+        // completed
+        $(".complete_btn").click(function (e) {
+          e.preventDefault();
+          let id = $(this).attr("id");
+          $.ajaxSetup({
+            headers: { "X-CSRFToken": '{{csrf_token}}', }
+          });
+
+          $.ajax({
+            url: '/?id='+id,
+            type: 'put',
+            dataType: 'json',
+            data: {
+              id: id,
+            },           
+            success: function (data) {
+              console.log(data);
+              alert('Task has been completed')
+              location.reload();
+            },
+            error: function (errormessage) {
+              console.log(errormessage);
+              alert('not working')           
+            }
+          })
+        })
+      });
+    </script>
+    {% else %}
+    <div class="log_box">
+      <h2> Welcome to To-Do List </h2>
+      <button class="log_btn" type="submit"  id="login"><a class="log_dec"  href="{% url 'login' %}"> Login</a> </button>
+      <button class="reg_btn" type="submit"  id="register"><a class="reg_dec"  href="{% url 'register' %}"> Register</a> </button>
+    </div>
+    {% endif %}
+    
+  </div>
+
+</body>
+
+</html>
